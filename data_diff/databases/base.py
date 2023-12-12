@@ -23,6 +23,7 @@ from data_diff.utils import ArithString, is_uuid, join_iter, safezip
 from data_diff.queries.api import Expr, table, Select, SKIP, Explain, Code, this
 from data_diff.queries.ast_classes import (
     Alias,
+    BinBoolOp,
     BinOp,
     CaseWhen,
     Cast,
@@ -64,6 +65,7 @@ from data_diff.abcs.database_types import (
     Float,
     Native_UUID,
     String_UUID,
+    Binary_UUID,
     String_Alphanum,
     String_VaryingAlphanum,
     TemporalType,
@@ -482,6 +484,22 @@ class BaseDialect(abc.ABC):
     def render__resolvecolumn(self, c: Compiler, elem: _ResolveColumn) -> str:
         return self.compile(c, elem._get_resolved())
 
+    def modify_string_where_clause(self, col, where_clause):
+        # NOTE: snowflake specific issue with Binary columns
+        return where_clause.replace(f'"{col}"', f"TO_VARCHAR(\"{col}\", 'UTF-8')")
+
+    def check_for_binary_cols(self, where_exprs):
+        binary_uuid_columns = set()
+        for expr in where_exprs:
+            if isinstance(expr, BinBoolOp):
+                for arg in expr.args:
+                    if isinstance(arg, _ResolveColumn):
+                        resolved_column = arg.resolved
+                        if isinstance(resolved_column, Column) and resolved_column.source_table.schema:
+                            if isinstance(resolved_column.type, Binary_UUID):
+                                binary_uuid_columns.add(resolved_column.name)
+        return binary_uuid_columns
+
     def render_select(self, parent_c: Compiler, elem: Select) -> str:
         c: Compiler = attrs.evolve(parent_c, in_select=True)  # .add_table_context(self.table)
         compile_fn = functools.partial(self.compile, c)
@@ -497,7 +515,13 @@ class BaseDialect(abc.ABC):
             select += f" FROM {self.PLACEHOLDER_TABLE}"
 
         if elem.where_exprs:
-            select += " WHERE " + " AND ".join(map(compile_fn, elem.where_exprs))
+            where_clause = " WHERE " + " AND ".join(map(compile_fn, elem.where_exprs))
+            # post processing step for snowfake BINARAY_UUID columns
+            if parent_c.dialect.name == "Snowflake":
+                binary_uuids = self.check_for_binary_cols(elem.where_exprs)
+                for binary_uuid in binary_uuids:
+                    where_clause = self.modify_string_where_clause(binary_uuid, where_clause)
+            select += where_clause
 
         if elem.group_by_exprs:
             select += " GROUP BY " + ", ".join(map(compile_fn, elem.group_by_exprs))
@@ -836,6 +860,9 @@ class BaseDialect(abc.ABC):
         """Creates an SQL expression, that strips uuids of artifacts like whitespace."""
         if isinstance(coltype, String_UUID):
             return f"TRIM({value})"
+        # converts Binary to VARCHAR for Snowflake
+        elif isinstance(coltype, Binary_UUID):
+            return f"TRIM(TO_VARCHAR({value}, 'UTF-8'))"
         return self.to_string(value)
 
     def normalize_json(self, value: str, _coltype: JSON) -> str:

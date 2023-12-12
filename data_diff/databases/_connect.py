@@ -25,6 +25,8 @@ from data_diff.databases.vertica import Vertica
 from data_diff.databases.duckdb import DuckDB
 from data_diff.databases.mssql import MsSQL
 
+import urllib.parse
+
 
 @attrs.define(frozen=True)
 class MatchUriPath:
@@ -196,7 +198,9 @@ class Connect:
                 if dsn.password:
                     kw["password"] = dsn.password
 
-        kw = {k: v for k, v in kw.items() if v is not None}
+        # snowflake connector can handle unquoted values, but data-diff cannot
+        # results in error if user or password is encoded
+        kw = {k: urllib.parse.unqoute(v) for k, v in kw.items() if v is not None}
 
         if issubclass(cls, ThreadedDatabase):
             db = cls(thread_count=thread_count, **kw, **kwargs)
