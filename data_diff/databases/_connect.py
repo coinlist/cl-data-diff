@@ -200,6 +200,7 @@ class Connect:
 
         # snowflake connector can handle unquoted values, but data-diff cannot
         # results in error if user or password is encoded
+        # https://github.com/datafold/data-diff/issues/428
         kw = {k: urllib.parse.unqoute(v) for k, v in kw.items() if v is not None}
 
         if issubclass(cls, ThreadedDatabase):
