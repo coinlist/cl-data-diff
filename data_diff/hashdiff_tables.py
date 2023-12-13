@@ -16,6 +16,7 @@ from data_diff.abcs.database_types import (
     Boolean,
     JSON,
     UnknownColType,
+    Text,
 )
 from data_diff.info_tree import InfoTree
 from data_diff.utils import safezip, diffs_are_equiv_jsons
@@ -104,7 +105,8 @@ class HashDiffer(TableDiffer):
             col2 = table2._schema[c2]
 
             # snowflake specific error when comparing binary and string columns
-            if isinstance(col1, String_UUID) and isinstance(col2, UnknownColType) and col2.text == "BINARY":
+            # use case is destination table has a binary column
+            if isinstance(col1, (String_UUID, Text)) and isinstance(col2, UnknownColType) and col2.text == "BINARY":
                 table2._schema[c2] = Binary_UUID()
 
             elif isinstance(col1, PrecisionType) and isinstance(col2, PrecisionType):
