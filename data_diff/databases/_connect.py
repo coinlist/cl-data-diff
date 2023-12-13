@@ -25,7 +25,7 @@ from data_diff.databases.vertica import Vertica
 from data_diff.databases.duckdb import DuckDB
 from data_diff.databases.mssql import MsSQL
 
-import urllib.parse
+from urllib.parse import unquote
 
 
 @attrs.define(frozen=True)
@@ -201,7 +201,7 @@ class Connect:
         # snowflake connector can handle unquoted values, but data-diff cannot
         # results in error if user or password is encoded
         # https://github.com/datafold/data-diff/issues/428
-        kw = {k: urllib.parse.unqoute(v) for k, v in kw.items() if v is not None}
+        kw = {k: unquote(v) for k, v in kw.items() if v is not None}
 
         if issubclass(cls, ThreadedDatabase):
             db = cls(thread_count=thread_count, **kw, **kwargs)
