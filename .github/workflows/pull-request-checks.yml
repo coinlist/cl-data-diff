@@ -37,7 +37,7 @@ jobs:
     uses: ./.github/workflows/formatter.yml
 
   cache-dependencies:
-    needs: [setup, preform-formatting]
+    needs: [setup, perform-ruff-formatting]
     uses: ./.github/workflows/_cache-dependencies.yml
     secrets: inherit
     with:
