@@ -22,15 +22,11 @@ jobs:
     outputs:
       python_version: ${{ steps.set_var.outputs.python_version }}
       poetry_version: ${{ steps.set_var.outputs.poetry_version }}
-      role_to_assume: ${{ steps.set_var.outputs.role_to_assume }}
-      aws_region: ${{ steps.set_var.outputs.aws_region }}
     steps:
       - id: set_var
         run: |
           echo "python_version=3.8" >> $GITHUB_OUTPUT
           echo "poetry_version=1.7.1" >> $GITHUB_OUTPUT
-          echo "role_to_assume=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID}}:role/github-actions-data-platform-data-diff" >> $GITHUB_OUTPUT
-          echo "aws_region=${{ secrets.AWS_REGION }}" >> $GITHUB_OUTPUT
 
   perform-ruff-formatting:
     needs: [setup]
@@ -52,7 +48,7 @@ jobs:
     needs: [setup]
     uses: ./.github/workflows/ci.yml
 
-  publish-data-platform-data-diff-dev:
+  publish-data-platform-data-diff:
     needs: [setup, run-unit-test-versions, run-unit-test-per-database, cache-dependencies]
     uses: ./.github/workflows/_publish-data-platform-data-diff.yml
     secrets: inherit
@@ -60,5 +56,3 @@ jobs:
       python_version: ${{ needs.setup.outputs.python_version }}
       poetry_version: ${{ needs.setup.outputs.poetry_version }}
       python_cache_key: ${{ needs.cache-dependencies.outputs.python_cache_key }}
-      role_to_assume: ${{ needs.setup.outputs.role_to_assume }}
-      aws_region: ${{ needs.setup.outputs.aws_region }}
