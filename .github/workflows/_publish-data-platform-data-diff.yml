@@ -53,7 +53,7 @@ jobs:
 
       - name: Set env variables
         env:
-          AWS_REGION = ${{ secrets.AWS_REGION }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           echo $(poetry run toml get --toml-path python/pyproject.toml tool.poetry.version) > version.txt
           echo "CURRENT_VERSION=$(cat version.txt)" >> $GITHUB_ENV
