@@ -26,7 +26,7 @@ jobs:
       - name: Setup AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.CROSS_ACCOUNT_ROLE_TO_ASSSUME }}
+          role-to-assume: ${{ secrets.CROSS_ACCOUNT_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION }}
           mask-aws-account-id: 'yes'
 
