@@ -1,0 +1,85 @@
+name: publish_data-platform-data-diff
+
+on:
+  workflow_call:
+    inputs:
+      python_version:
+        required: true
+        type: string
+      poetry_version:
+        required: true
+        type: string
+      python_cache_key:
+        required: true
+        type: string
+      role_to_assume:
+        required: true
+        type: string
+      aws_region:
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    name: 'Publish python SDK cl-data'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ inputs.role_to_assume }}
+          aws-region: ${{ inputs.aws_region }}
+          mask-aws-account-id: 'yes'
+
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        id: setup-python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '${{ env.PYTHON_VERSION }}'
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-in-project: true
+
+      - name: Restore cached key
+        id: cache-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: .venv
+          key: ${{ inputs.python_cache_key }}
+
+      - name: Set env variables
+        run: |
+          echo $(poetry run toml get --toml-path python/pyproject.toml tool.poetry.version) > version.txt
+          echo "CURRENT_VERSION=$(cat version.txt)" >> $GITHUB_ENV
+
+          echo "VERSION_ALREADY_PUBLISHED=$(aws codeartifact --region ${{ inputs.aws_region }} list-package-versions --domain coinlist --repository data_platform_data_diff --format pypi --package data-platform-data-diff --query versions --output text --sort-by PUBLISHED_TIME | grep -e "$(cat version.txt | sed 's/\./\\./g')$" --count)" >> $GITHUB_ENV
+
+      - name: Publish dev version
+        if: ${{ github.ref_name != 'main' }}
+        run: |
+          echo "$CURRENT_VERSION-dev+${GITHUB_SHA:0:7}" > version.txt
+          echo "To install this wheel \`poetry add \"data-platform-data-diff==$(cat version.txt)[all]\" --source artifact\`"
+
+          poetry run toml set --toml-path python/pyproject.toml tool.poetry.version $(cat version.txt)
+
+          cd python
+          poetry build --format wheel
+          poetry publish --repository artifact --username aws --password $(aws codeartifact --region ${{ inputs.aws_region }} get-authorization-token --domain coinlist --query authorizationToken --output text)
+
+      - name: Publish new version
+        if: ${{ github.ref_name == 'main' }}
+        run: |
+          if [[ $VERSION_ALREADY_PUBLISHED == 0 ]]; then
+              cd python
+              poetry build --format wheel
+              poetry publish --repository artifact --username aws --password $(aws codeartifact --region ${{ inputs.aws_region }} get-authorization-token --domain coinlist --query authorizationToken --output text)

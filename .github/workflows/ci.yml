@@ -1,20 +1,13 @@
 name: CI-COVER-VERSIONS
 
 on:
-#   push:
-#     paths:
-#       - '**.py'
-#       - '.github/workflows/**'
-#       - '!dev/**'
-  pull_request:
-    branches: [ master ]
-
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   unit_tests:
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [ubuntu-latest]
         python-version:

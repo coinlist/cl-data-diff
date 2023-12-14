@@ -1,14 +1,8 @@
 name: CI-COVER-DATABASES
 
 on:
-#   push:
-#     paths:
-#       - '**.py'
-#       - '.github/workflows/**'
-#       - '!dev/**'
-  pull_request:
-    branches: [ master ]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   id-token: write # This is required for requesting the JWT
@@ -17,7 +11,7 @@ permissions:
 jobs:
   unit_tests:
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [ubuntu-latest]
         python-version:
