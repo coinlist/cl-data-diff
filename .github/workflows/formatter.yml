@@ -1,7 +1,7 @@
 name: formatter
 on:
   workflow_dispatch:
-  worflow_call:
+  workflow_call:
 
 jobs:
   linter_name:
