@@ -59,7 +59,7 @@ jobs:
           echo $VERSION > version.txt
           echo "CURRENT_VERSION=$(cat version.txt)" >> $GITHUB_ENV
           
-          VERSION_ALREADY_PUBLISHED=$(aws codeartifact --region $AWS_REGION list-package-versions --domain coinlist --repository data_platform_data_diff --format pypi --package data-platform-data-diff --query versions --output text --sort-by PUBLISHED_TIME | grep -e "$(cat version.txt | sed 's/\./\\./g')$" --count) || { echo "Error querying AWS CodeArtifact, repository might not exist."; exit 1; }
+          VERSION_ALREADY_PUBLISHED=$(aws codeartifact --region $AWS_REGION list-package-versions --domain coinlist --repository data_platform_data_diff --format pypi --package data-platform-data-diff --query versions --output text --sort-by PUBLISHED_TIME 2>/dev/null | grep -e "$(cat version.txt | sed 's/\./\\./g')$" --count) || { echo "Error querying AWS CodeArtifact, repository might not exist."; exit 1; }
           echo "VERSION_ALREADY_PUBLISHED=$VERSION_ALREADY_PUBLISHED >> $GITHUB_ENV
 
       - name: Publish dev version
@@ -72,15 +72,15 @@ jobs:
 
           cd python
           poetry build --format wheel || { echo "Failed to build the wheel"; exit 1; }
-          poetry publish --repository artifact --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text) || { echo "Failed to publish the package"; exit 1; }
+          poetry publish --repository artifact --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text 2>/dev/null) || { echo "Failed to publish the package"; exit 1; }
 
       - name: Publish new version
         if: ${{ github.ref_name == 'main' }}
         run: |
           if [[ $VERSION_ALREADY_PUBLISHED == 0 ]]; then
               cd python
-              poetry build --format wheel || { echo "Failed to build the wheel"; exit 1; }
-              poetry publish --repository artifact --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text) || { echo "Failed to publish the package"; exit 1; }
+              poetry build --format wheel 2>/dev/null || { echo "Failed to build the wheel"; exit 1; }
+              poetry publish --repository artifact --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text 2>/dev/null) || { echo "Failed to publish the package"; exit 1; }
           else
               echo "Version already published, skipping publish step."
           fi
