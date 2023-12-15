@@ -91,5 +91,6 @@ jobs:
       - name: Publish new version
         if: ${{ github.ref_name == 'master' }} && ${{ env.skip_publish != 'true' }}
         run: |
+          poetry config repositories.data-platform-data-diff ${{ secrets.CODEARTIFACT_URL }}
           poetry build --format wheel 2>/dev/null || { echo "Failed to build the wheel"; exit 1; }
-          poetry publish --repository data-platform-data-diff --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text 2>/dev/null) || { echo "Failed to publish the package"; exit 1; }
+          poetry publish --repository data-platform-data-diff --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text 2>/dev/null) || { echo "Failed to publish the prod package"; exit 1; }
