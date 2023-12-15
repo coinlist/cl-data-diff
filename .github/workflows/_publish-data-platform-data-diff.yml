@@ -51,10 +51,20 @@ jobs:
           path: .venv
           key: ${{ inputs.python_cache_key }}
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Check if AWS CodeArtifact is queryable and count repositories
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          repo_count=$(aws codeartifact list-repositories --region $AWS_REGION --output json | jq '.repositories | length' 2>/dev/null) || { echo "Failed to query AWS CodeArtifact or an error occurred."; exit 0; }
+          echo "Number of repositories in AWS CodeArtifact: $repo_count"
+
       - name: Set env variables
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          CODEARTIFACT_URL: ${{ secrets.CODEARTIFACT_URL }}  # Add your CodeArtifact URL as a secret
+          CODEARTIFACT_URL: ${{ secrets.CODEARTIFACT_URL }}
         run: |
           # Replace placeholder URL with actual repository URL
           sed -i "s|PLACEHOLDER_URL|$CODEARTIFACT_URL|" pyproject.toml
