@@ -1,0 +1,95 @@
+name: publish_data-platform-data-diff
+
+on:
+  workflow_call:
+    inputs:
+      python_version:
+        required: true
+        type: string
+      poetry_version:
+        required: true
+        type: string
+      python_cache_key:
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    name: 'Publish python data-platform-data-diff'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CROSS_ACCOUNT_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          mask-aws-account-id: 'yes'
+
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        id: setup-python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '${{ inputs.python_version }}'
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ inputs.poetry_version }}
+          virtualenvs-in-project: true
+
+      - name: Restore cached key
+        id: cache-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: .venv
+          key: ${{ inputs.python_cache_key }}
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Set env variables
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          CODEARTIFACT_URL: ${{ secrets.CODEARTIFACT_URL }}
+        run: |
+          # Replace placeholder URL with actual repository URL
+          sed -i "s|PLACEHOLDER_URL|$CODEARTIFACT_URL|" pyproject.toml
+
+          VERSION=$(poetry run toml get --toml-path pyproject.toml tool.poetry.version 2>/dev/null) || { echo "FAILED TO GET POETRY VERSION"; exit 1; }
+          echo $VERSION > version.txt
+          echo "CURRENT_VERSION=$(cat version.txt)" >> $GITHUB_ENV
+
+      - name: Check if version needs to be published
+        if: ${{ github.ref_name == 'master' }}
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        id: check_version
+        run: |
+          if ! aws codeartifact list-package-versions --region $AWS_REGION --domain coinlist --repository data-platform-data-diff --format pypi --package data_diff 2>/dev/null | grep -q "$(cat version.txt | sed 's/\./\\./g')"; then
+            echo "skip_publish=false" >> $GITHUB_ENV
+          else
+            echo "skip_publish=true" >> $GITHUB_ENV
+          fi
+
+      - name: Publish dev version
+        if: ${{ github.ref_name != 'master' }}
+        run: |
+          DEV_VERSION="$CURRENT_VERSION-dev+${GITHUB_SHA:0:7}"
+          echo $DEV_VERSION > version.txt
+          poetry run toml set --toml-path pyproject.toml tool.poetry.version $DEV_VERSION || { echo "Failed to set dev version in pyproject.toml"; exit 1; }
+          poetry config repositories.data-platform-data-diff ${{ secrets.CODEARTIFACT_URL }}
+          poetry build --format wheel || { echo "Failed to build the wheel"; exit 1; }
+          poetry publish --repository data-platform-data-diff --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text 2>/dev/null) || { echo "Failed to publish the dev package"; exit 1; }
+
+      - name: Publish new version
+        if: ${{ github.ref_name == 'master' }} && ${{ env.skip_publish != 'true' }}
+        run: |
+          poetry build --format wheel 2>/dev/null || { echo "Failed to build the wheel"; exit 1; }
+          poetry publish --repository data-platform-data-diff --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text 2>/dev/null) || { echo "Failed to publish the package"; exit 1; }

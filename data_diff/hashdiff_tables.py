@@ -6,7 +6,18 @@ from typing import Iterator
 
 import attrs
 
-from data_diff.abcs.database_types import ColType_UUID, NumericType, PrecisionType, StringType, Boolean, JSON
+from data_diff.abcs.database_types import (
+    Binary_UUID,
+    ColType_UUID,
+    NumericType,
+    PrecisionType,
+    String_UUID,
+    StringType,
+    Boolean,
+    JSON,
+    UnknownColType,
+    Text,
+)
 from data_diff.info_tree import InfoTree
 from data_diff.utils import safezip, diffs_are_equiv_jsons
 from data_diff.thread_utils import ThreadedYielder
@@ -92,7 +103,13 @@ class HashDiffer(TableDiffer):
             # Update schemas to minimal mutual precision
             col1 = table1._schema[c1]
             col2 = table2._schema[c2]
-            if isinstance(col1, PrecisionType) and isinstance(col2, PrecisionType):
+
+            # snowflake specific error when comparing binary and string columns
+            # use case is destination table has a binary column
+            if isinstance(col1, (String_UUID, Text)) and isinstance(col2, UnknownColType) and col2.text == "BINARY":
+                table2._schema[c2] = Binary_UUID()
+
+            elif isinstance(col1, PrecisionType) and isinstance(col2, PrecisionType):
                 if strict and not isinstance(col2, PrecisionType):
                     raise TypeError(f"Incompatible types for column '{c1}':  {col1} <-> {col2}")
 

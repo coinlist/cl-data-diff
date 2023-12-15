@@ -1,0 +1,51 @@
+name: cache_dependencies
+
+on:
+  workflow_call:
+    inputs:
+      python_version:
+        required: true
+        type: string
+      poetry_version:
+        required: true
+        type: string
+    outputs:
+      python_cache_key:
+        description: "The key of the primary cache of the python dependencies"
+        value: ${{ jobs.python-cache.outputs.key }}
+
+
+jobs:
+  python-cache:
+    runs-on: ubuntu-latest
+    outputs:
+      key: ${{ steps.define-cache-key.outputs.cache_key }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        id: setup-python
+        with:
+          python-version: '${{ inputs.python_version }}'
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ inputs.poetry_version }}
+          virtualenvs-in-project: true
+
+      - name: Define Cache Key
+        id: define-cache-key
+        run: |
+          echo "cache_key=python-${{ runner.os }}--${{ inputs.python_version }}-${{ inputs.poetry_version }}-${{ hashFiles('**/poetry.lock') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache venv
+        id: cached-python
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: ${{ steps.define-cache-key.outputs.cache_key }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root

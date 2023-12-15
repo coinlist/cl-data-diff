@@ -1,9 +1,7 @@
 name: formatter
 on:
-    pull_request:
-        branches: [ master ]
-    
-    workflow_dispatch:
+  workflow_dispatch:
+  workflow_call:
 
 jobs:
   linter_name:

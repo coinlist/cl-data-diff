@@ -134,6 +134,12 @@ class String_UUID(ColType_UUID, StringType):
     pass
 
 
+# Snowflake Binary UUID
+@attrs.define(frozen=True)
+class Binary_UUID(ColType_UUID):
+    python_type = bytes
+
+
 @attrs.define(frozen=True)
 class String_Alphanum(ColType_Alphanum, StringType):
     @staticmethod
