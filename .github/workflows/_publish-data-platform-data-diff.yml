@@ -84,8 +84,8 @@ jobs:
           DEV_VERSION="$CURRENT_VERSION-dev+${GITHUB_SHA:0:7}"
           echo $DEV_VERSION > version.txt
           poetry run toml set --toml-path pyproject.toml tool.poetry.version $DEV_VERSION || { echo "Failed to set dev version in pyproject.toml"; exit 1; }
-          poetry build --format wheel || { echo "Failed to build the wheel"; exit 1; }
           poetry config repositories.data-platform-data-diff ${{ secrets.CODEARTIFACT_URL }}
+          poetry build --format wheel || { echo "Failed to build the wheel"; exit 1; }
           poetry publish --repository data-platform-data-diff --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text 2>/dev/null) || { echo "Failed to publish the dev package"; exit 1; }
 
       - name: Publish new version
