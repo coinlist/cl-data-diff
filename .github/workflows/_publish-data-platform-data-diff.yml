@@ -36,12 +36,12 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v4
         with:
-          python-version: '${{ env.PYTHON_VERSION }}'
+          python-version: '${{ inputs.python_version }}'
 
       - name: Install and configure Poetry
         uses: snok/install-poetry@v1
         with:
-          version: ${{ env.POETRY_VERSION }}
+          version: ${{ inputs.poetry_version }}
           virtualenvs-in-project: true
 
       - name: Restore cached key
@@ -54,13 +54,6 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Check if AWS CodeArtifact is queryable and count repositories
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          repo_count=$(aws codeartifact list-repositories --region $AWS_REGION --output json | jq '.repositories | length' 2>/dev/null) || { echo "Failed to query AWS CodeArtifact or an error occurred."; exit 0; }
-          echo "Number of repositories in AWS CodeArtifact: $repo_count"
-
       - name: Set env variables
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -72,16 +65,6 @@ jobs:
           VERSION=$(poetry run toml get --toml-path pyproject.toml tool.poetry.version 2>/dev/null) || { echo "FAILED TO GET POETRY VERSION"; exit 1; }
           echo $VERSION > version.txt
           echo "CURRENT_VERSION=$(cat version.txt)" >> $GITHUB_ENV
-
-      - name: Check AWS CodeArtifact repository existence
-        if: ${{ github.ref_name == 'master' }}
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          if ! aws codeartifact list-repositories --region $AWS_REGION | grep -q "data-platform-data-diff"; then
-            echo "AWS CodeArtifact repository 'data-platform-data-diff' does not exist."
-            exit 0
-          fi
 
       - name: Check if version needs to be published
         if: ${{ github.ref_name == 'master' }}
