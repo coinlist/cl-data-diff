@@ -20,6 +20,11 @@ classifiers = [
     "Typing :: Typed"
 ]
 packages = [{ include = "data_diff" }]
+
+[tools.poetry.source]
+name = "data-platform-data-diff"
+url = "PLACEHOLDER_URL"
+
 [tool.poetry.dependencies]
 pydantic = "1.10.12"
 python = "^3.8.0"

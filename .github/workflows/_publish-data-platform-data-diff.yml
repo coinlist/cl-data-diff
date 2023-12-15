@@ -54,33 +54,50 @@ jobs:
       - name: Set env variables
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
+          CODEARTIFACT_URL: ${{ secrets.CODEARTIFACT_URL }}  # Add your CodeArtifact URL as a secret
         run: |
-          VERSION=$(poetry run toml get --toml-path pyproject.toml tool.poetry.version 2>/dev/null) || { echo "FAILED TO GET POETRY VERSION"; exit 1;}
+          # Replace placeholder URL with actual repository URL
+          sed -i "s|PLACEHOLDER_URL|$CODEARTIFACT_URL|" pyproject.toml
+
+          VERSION=$(poetry run toml get --toml-path pyproject.toml tool.poetry.version 2>/dev/null) || { echo "FAILED TO GET POETRY VERSION"; exit 1; }
           echo $VERSION > version.txt
           echo "CURRENT_VERSION=$(cat version.txt)" >> $GITHUB_ENV
-          
-          VERSION_ALREADY_PUBLISHED=$(aws codeartifact --region $AWS_REGION list-package-versions --domain coinlist --repository data_platform_data_diff --format pypi --package data-platform-data-diff --query versions --output text --sort-by PUBLISHED_TIME 2>/dev/null | grep -e "$(cat version.txt | sed 's/\./\\./g')$" --count) || { echo "Error querying AWS CodeArtifact, repository might not exist."; exit 1; }
-          echo "VERSION_ALREADY_PUBLISHED=$VERSION_ALREADY_PUBLISHED >> $GITHUB_ENV
+
+      - name: Check AWS CodeArtifact repository existence
+        if: ${{ github.ref_name == 'master' }}
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          if ! aws codeartifact list-repositories --region $AWS_REGION | grep -q "data-platform-data-diff"; then
+            echo "AWS CodeArtifact repository 'data-platform-data-diff' does not exist."
+            exit 0
+          fi
+
+      - name: Check if version needs to be published
+        if: ${{ github.ref_name == 'master' }}
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        id: check_version
+        run: |
+          if ! aws codeartifact list-package-versions --region $AWS_REGION --domain coinlist --repository data-platform-data-diff --format pypi --package data_diff 2>/dev/null | grep -q "$(cat version.txt | sed 's/\./\\./g')"; then
+            echo "skip_publish=false" >> $GITHUB_ENV
+          else
+            echo "skip_publish=true" >> $GITHUB_ENV
+          fi
 
       - name: Publish dev version
-        if: ${{ github.ref_name != 'main' }}
+        if: ${{ github.ref_name != 'master' }}
         run: |
-          echo "$CURRENT_VERSION-dev+${GITHUB_SHA:0:7}" > version.txt
-          echo "To install this wheel \`poetry add \"data-platform-data-diff==$(cat version.txt)[all]\" --source artifact\`"
-
-          poetry run toml set --toml-path pyproject.toml tool.poetry.version $(cat version.txt) || { echo "Failed to set version in pyproject.toml"; exit 1; }
-
           cd python
-          poetry build --format wheel || { echo "Failed to build the wheel"; exit 1; }
-          poetry publish --repository artifact --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text 2>/dev/null) || { echo "Failed to publish the package"; exit 1; }
+          DEV_VERSION="$CURRENT_VERSION-dev+${GITHUB_SHA:0:7}"
+          echo $DEV_VERSION > version.txt
+          poetry run toml set --toml-path pyproject.toml tool.poetry.version $DEV_VERSION || { echo "Failed to set dev version in pyproject.toml"; exit 1; }
+          poetry build --format wheel 2>/dev/null || { echo "Failed to build the wheel"; exit 1; }
+          poetry publish --repository data-platform-data-diff --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text 2>/dev/null) || { echo "Failed to publish the dev package"; exit 1; }
 
       - name: Publish new version
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'master' }} && ${{ env.skip_publish != 'true' }}
         run: |
-          if [[ $VERSION_ALREADY_PUBLISHED == 0 ]]; then
-              cd python
-              poetry build --format wheel 2>/dev/null || { echo "Failed to build the wheel"; exit 1; }
-              poetry publish --repository artifact --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text 2>/dev/null) || { echo "Failed to publish the package"; exit 1; }
-          else
-              echo "Version already published, skipping publish step."
-          fi
+          cd python
+          poetry build --format wheel 2>/dev/null || { echo "Failed to build the wheel"; exit 1; }
+          poetry publish --repository data-platform-data-diff --username aws --password $(aws codeartifact --region ${{ secrets.AWS_REGION }} get-authorization-token --domain coinlist --query authorizationToken --output text 2>/dev/null) || { echo "Failed to publish the package"; exit 1; }
