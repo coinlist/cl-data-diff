@@ -16,7 +16,7 @@ from data_diff.utils import dbt_diff_string_template, run_as_daemon, safezip, ge
 from data_diff.thread_utils import ThreadedYielder
 from data_diff.table_segment import TableSegment, create_mesh_from_points
 from data_diff.tracking import create_end_event_json, create_start_event_json, send_event_json, is_tracking_enabled
-from data_diff.abcs.database_types import IKey
+from data_diff.abcs.database_types import IKey, Text, String_UUID, Binary_UUID
 
 logger = getLogger(__name__)
 
@@ -280,6 +280,8 @@ class TableDiffer(ThreadBase, ABC):
                 raise NotImplementedError(f"Cannot use a column of type {kt} as a key")
 
         for kt1, kt2 in safezip(key_types1, key_types2):
+            if isinstance(kt1, String_UUID) and isinstance(kt2, (Text, Binary_UUID)):
+                continue
             if kt1.python_type is not kt2.python_type:
                 raise TypeError(f"Incompatible key types: {kt1} and {kt2}")
 
