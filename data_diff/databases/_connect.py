@@ -186,8 +186,10 @@ class Connect:
             if scheme == "snowflake":
                 kw["account"] = dsn.host
                 assert not dsn.port
-                kw["user"] = dsn.user
-                kw["password"] = dsn.password
+                # snowflake connector can handle unquoted values, but data-diff cannot
+                # results in error if user or password is encoded
+                kw["user"] = unquote(dsn.user)
+                kw["password"] = unquote(dsn.password)
             else:
                 if scheme == "oracle":
                     kw["host"] = dsn.hostloc
