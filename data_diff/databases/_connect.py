@@ -188,6 +188,7 @@ class Connect:
                 assert not dsn.port
                 # snowflake connector can handle unquoted values, but data-diff cannot
                 # results in error if user or password is encoded
+                # https://github.com/datafold/data-diff/issues/428
                 kw["user"] = unquote(dsn.user)
                 kw["password"] = unquote(dsn.password)
             else:
@@ -200,9 +201,6 @@ class Connect:
                 if dsn.password:
                     kw["password"] = dsn.password
 
-        # snowflake connector can handle unquoted values, but data-diff cannot
-        # results in error if user or password is encoded
-        # https://github.com/datafold/data-diff/issues/428
         kw = {k: v for k, v in kw.items() if v is not None}
 
         if issubclass(cls, ThreadedDatabase):
