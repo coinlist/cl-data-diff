@@ -189,8 +189,8 @@ class Connect:
                 # snowflake connector can handle unquoted values, but data-diff cannot
                 # results in error if user or password is encoded
                 # https://github.com/datafold/data-diff/issues/428
-                kw["user"] = unquote(dsn.user)
-                kw["password"] = unquote(dsn.password)
+                kw["user"] = unquote(dsn.user) if dsn.user else dsn.user
+                kw["password"] = unquote(dsn.password) if dsn.password else dsn.password
             else:
                 if scheme == "oracle":
                     kw["host"] = dsn.hostloc
