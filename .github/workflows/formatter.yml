@@ -10,8 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Check files using the ruff formatter
         uses: chartboost/ruff-action@v1
         id: ruff_formatter
@@ -20,11 +18,11 @@ jobs:
       - name: Create Pull Request with ruff formatting
         uses: peter-evans/create-pull-request@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "style fixes by ruff"
           branch: ruff-fixes
           title: "Apply ruff formatting"
           body: "This PR applies ruff formatting to the codebase."
+
       # - name: Auto commit ruff formatting
       #   uses: stefanzweifel/git-auto-commit-action@v5
       #   with:
