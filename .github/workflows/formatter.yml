@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-permissions:
-  contents: write
-
 jobs:
   linter_name:
     name: runner / ruff
@@ -18,15 +15,3 @@ jobs:
         id: ruff_formatter
         with:
           args: format
-      # - name: Create Pull Request with ruff formatting
-      #   uses: peter-evans/create-pull-request@v7
-      #   with:
-      #     commit-message: "style fixes by ruff"
-      #     branch: ruff-fixes
-      #     title: "Apply ruff formatting"
-      #     body: "This PR applies ruff formatting to the codebase."
-
-      # - name: Auto commit ruff formatting
-      #   uses: stefanzweifel/git-auto-commit-action@v5
-      #   with:
-      #     commit_message: "style fixes by ruff"
