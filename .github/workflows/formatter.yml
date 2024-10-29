@@ -4,12 +4,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-permissions:
-  contents: write
-  pull-requests: write 
-  issues: read
-  packages: none
-
 jobs:
   linter_name:
     name: runner / ruff
