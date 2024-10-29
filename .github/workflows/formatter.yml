@@ -16,7 +16,7 @@ jobs:
         with:
           args: format
       - name: Create Pull Request with ruff formatting
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "style fixes by ruff"
           branch: ruff-fixes
