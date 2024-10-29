@@ -34,6 +34,7 @@ jobs:
   perform-ruff-formatting:
     needs: [setup]
     uses: ./.github/workflows/formatter.yml
+    secrets: inherit
 
   # cache-dependencies:
   #   needs: [setup, perform-ruff-formatting]
