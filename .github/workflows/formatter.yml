@@ -3,12 +3,15 @@ on:
   workflow_dispatch:
   workflow_call:
 
+permissions:
+  contents: write
+
 jobs:
   linter_name:
     name: runner / ruff
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check files using the ruff formatter
         uses: chartboost/ruff-action@v1
         id: ruff_formatter
