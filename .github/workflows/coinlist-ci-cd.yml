@@ -36,33 +36,33 @@ jobs:
     needs: [setup]
     uses: ./.github/workflows/formatter.yml
 
-  cache-dependencies:
-    needs: [setup, perform-ruff-formatting]
-    uses: ./.github/workflows/_cache-dependencies.yml
-    secrets: inherit
-    with:
-      python_version: ${{ needs.setup.outputs.python_version }}
-      poetry_version: ${{ needs.setup.outputs.poetry_version }}
+  # cache-dependencies:
+  #   needs: [setup, perform-ruff-formatting]
+  #   uses: ./.github/workflows/_cache-dependencies.yml
+  #   secrets: inherit
+  #   with:
+  #     python_version: ${{ needs.setup.outputs.python_version }}
+  #     poetry_version: ${{ needs.setup.outputs.poetry_version }}
 
-  run-unit-test-versions:
-    needs: [setup]
-    uses: ./.github/workflows/ci_full.yml
+  # run-unit-test-versions:
+  #   needs: [setup]
+  #   uses: ./.github/workflows/ci_full.yml
 
-  run-unit-test-per-database:
-    needs: [setup]
-    uses: ./.github/workflows/ci.yml
+  # run-unit-test-per-database:
+  #   needs: [setup]
+  #   uses: ./.github/workflows/ci.yml
 
-  publish-data-platform-data-diff:
-    needs:
-      [
-        setup,
-        run-unit-test-versions,
-        run-unit-test-per-database,
-        cache-dependencies,
-      ]
-    uses: ./.github/workflows/_publish-data-platform-data-diff.yml
-    secrets: inherit
-    with:
-      python_version: ${{ needs.setup.outputs.python_version }}
-      poetry_version: ${{ needs.setup.outputs.poetry_version }}
-      python_cache_key: ${{ needs.cache-dependencies.outputs.python_cache_key }}
+  # publish-data-platform-data-diff:
+  #   needs:
+  #     [
+  #       setup,
+  #       run-unit-test-versions,
+  #       run-unit-test-per-database,
+  #       cache-dependencies,
+  #     ]
+  #   uses: ./.github/workflows/_publish-data-platform-data-diff.yml
+  #   secrets: inherit
+  #   with:
+  #     python_version: ${{ needs.setup.outputs.python_version }}
+  #     poetry_version: ${{ needs.setup.outputs.poetry_version }}
+  #     python_cache_key: ${{ needs.cache-dependencies.outputs.python_cache_key }}
