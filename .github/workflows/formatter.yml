@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        with :
+           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: Check files using the ruff formatter
         uses: chartboost/ruff-action@v1
         id: ruff_formatter
