@@ -9,3 +9,12 @@ jaffle_shop:
       type: duckdb
       path: "./tests/dbt_artifacts/jaffle_shop.duckdb"
       schema: "{{ env_var('some_env_var') }}"
+    snowflake_dev:
+      type: snowflake
+      account: "your_account"
+      user: "your_user"
+      password: "your_password"
+      warehouse: "COMPUTE_WH"
+      role: "SYSADMIN"
+      database: "your_database"
+      schema: "public"
