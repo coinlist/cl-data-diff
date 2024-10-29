@@ -1,10 +1,8 @@
 name: formatter
+
 on:
   workflow_dispatch:
   workflow_call:
-
-permissions:
-  contents: write
 
 jobs:
   linter_name:
