@@ -36,13 +36,13 @@ jobs:
     uses: ./.github/workflows/formatter.yml
     secrets: inherit
 
-  # cache-dependencies:
-  #   needs: [setup, perform-ruff-formatting]
-  #   uses: ./.github/workflows/_cache-dependencies.yml
-  #   secrets: inherit
-  #   with:
-  #     python_version: ${{ needs.setup.outputs.python_version }}
-  #     poetry_version: ${{ needs.setup.outputs.poetry_version }}
+  cache-dependencies:
+    needs: [setup, perform-ruff-formatting]
+    uses: ./.github/workflows/_cache-dependencies.yml
+    secrets: inherit
+    with:
+      python_version: ${{ needs.setup.outputs.python_version }}
+      poetry_version: ${{ needs.setup.outputs.poetry_version }}
 
   # run-unit-test-versions:
   #   needs: [setup]
