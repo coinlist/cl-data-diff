@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch: {}
 
 permissions:
   id-token: write
@@ -15,9 +16,9 @@ jobs:
   cancel:
     runs-on: ubuntu-latest
     steps:
-    - uses: styfle/cancel-workflow-action@0.12.0
-      with:
-        access_token: ${{ github.token }}
+      - uses: styfle/cancel-workflow-action@0.12.0
+        with:
+          access_token: ${{ github.token }}
 
   setup:
     runs-on: ubuntu-latest
@@ -52,7 +53,13 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   publish-data-platform-data-diff:
-    needs: [setup, run-unit-test-versions, run-unit-test-per-database, cache-dependencies]
+    needs:
+      [
+        setup,
+        run-unit-test-versions,
+        run-unit-test-per-database,
+        cache-dependencies,
+      ]
     uses: ./.github/workflows/_publish-data-platform-data-diff.yml
     secrets: inherit
     with:
