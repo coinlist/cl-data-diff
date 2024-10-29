@@ -15,3 +15,7 @@ jobs:
         id: ruff_formatter
         with:
           args: format
+      - name: Auto commit ruff formatting
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style fixes by ruff"
