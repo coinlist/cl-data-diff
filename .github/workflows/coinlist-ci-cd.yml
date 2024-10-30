@@ -44,9 +44,9 @@ jobs:
       python_version: ${{ needs.setup.outputs.python_version }}
       poetry_version: ${{ needs.setup.outputs.poetry_version }}
 
-  # run-unit-test-versions:
-  #   needs: [setup]
-  #   uses: ./.github/workflows/ci_full.yml
+  run-unit-test-versions:
+    needs: [setup]
+    uses: ./.github/workflows/ci_full.yml
 
   # run-unit-test-per-database:
   #   needs: [setup]
