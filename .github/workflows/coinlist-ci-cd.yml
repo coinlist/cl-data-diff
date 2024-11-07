@@ -54,12 +54,10 @@ jobs:
 
   publish-data-platform-data-diff:
     needs:
-      [
-        setup,
-        run-unit-test-versions,
-        run-unit-test-per-database,
-        cache-dependencies,
-      ]
+      - setup
+      - run-unit-test-versions
+      - run-unit-test-per-database
+      - cache-dependencies
     uses: ./.github/workflows/_publish-data-platform-data-diff.yml
     secrets: inherit
     with:
