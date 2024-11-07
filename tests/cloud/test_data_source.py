@@ -4,6 +4,7 @@ from pathlib import Path
 from parameterized import parameterized
 import unittest
 from unittest.mock import Mock, patch
+import re
 
 from data_diff.cloud.datafold_api import (
     TCloudApiDataSourceConfigSchema,
@@ -23,6 +24,7 @@ from data_diff.cloud.data_source import (
 )
 from data_diff.dbt_parser import TDatadiffConfig
 
+ANSI_ESCAPE = re.compile(r"\x1b\[([0-9]+)(;[0-9]+)?m")
 
 DATA_SOURCE_CONFIGS = {
     "snowflake": TDsConfig(
@@ -134,10 +136,14 @@ class TestDataSource(unittest.TestCase):
                 for item in json.load(file)
             ]
 
+        print(self.data_source_schema)
+
         self.db_type_data_source_schemas = {ds_schema.db_type: ds_schema for ds_schema in self.data_source_schema}
 
         with open(Path(__file__).parent / "files/data_source_list_response.json", "r") as file:
             self.data_sources = [TCloudApiDataSource(**item) for item in json.load(file)]
+
+        print(self.data_sources)
 
         self.api = Mock()
         self.api.get_data_source_schema_config.return_value = self.data_source_schema
@@ -261,8 +267,9 @@ class TestDataSource(unittest.TestCase):
                 dbt_parser=mock_dbt_parser,
             )
             self.assertEqual(actual_config, config)
+            actual_output = ANSI_ESCAPE.sub("", mock_stdout.getvalue().strip())
             self.assertEqual(
-                mock_stdout.getvalue().strip(),
+                actual_output,
                 'Cannot extract "account" from dbt profiles.yml. Please, type it manually',
             )
 
