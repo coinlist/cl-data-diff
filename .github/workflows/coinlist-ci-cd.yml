@@ -17,7 +17,7 @@ jobs:
   cancel:
     runs-on: ubuntu-latest
     steps:
-      - uses: styfle/cancel-workflow-action@0.12.0
+      - uses: styfle/cancel-workflow-action@0.12.1
 
   setup:
     runs-on: ubuntu-latest
@@ -48,21 +48,21 @@ jobs:
     needs: [setup]
     uses: ./.github/workflows/ci_full.yml
 
-  # run-unit-test-per-database:
-  #   needs: [setup]
-  #   uses: ./.github/workflows/ci.yml
+  run-unit-test-per-database:
+    needs: [setup]
+    uses: ./.github/workflows/ci.yml
 
-  # publish-data-platform-data-diff:
-  #   needs:
-  #     [
-  #       setup,
-  #       run-unit-test-versions,
-  #       run-unit-test-per-database,
-  #       cache-dependencies,
-  #     ]
-  #   uses: ./.github/workflows/_publish-data-platform-data-diff.yml
-  #   secrets: inherit
-  #   with:
-  #     python_version: ${{ needs.setup.outputs.python_version }}
-  #     poetry_version: ${{ needs.setup.outputs.poetry_version }}
-  #     python_cache_key: ${{ needs.cache-dependencies.outputs.python_cache_key }}
+  publish-data-platform-data-diff:
+    needs:
+      [
+        setup,
+        run-unit-test-versions,
+        run-unit-test-per-database,
+        cache-dependencies,
+      ]
+    uses: ./.github/workflows/_publish-data-platform-data-diff.yml
+    secrets: inherit
+    with:
+      python_version: ${{ needs.setup.outputs.python_version }}
+      poetry_version: ${{ needs.setup.outputs.poetry_version }}
+      python_cache_key: ${{ needs.cache-dependencies.outputs.python_cache_key }}
