@@ -39,8 +39,6 @@ class TestDbtDiffer(unittest.TestCase):
         if test_project_path == artifacts_path:
             diff_string = b"".join(diff).decode("utf-8")
 
-            print("diff_string", diff_string)
-
             # 5 diffs were ran
             assert diff_string.count("<>") == 5
             # 4 with no diffs

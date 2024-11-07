@@ -48,11 +48,8 @@ services:
         - '3306:3306'
       expose:
         - '3306'
-      environment:
-        MYSQL_ROOT_PASSWORD: Password1
-        MYSQL_DATABASE: mysql
-        MYSQL_USER: mysql
-        MYSQL_PASSWORD: Password1
+      env_file:
+        - dev/dev.env
       tty: true
       networks:
         - local

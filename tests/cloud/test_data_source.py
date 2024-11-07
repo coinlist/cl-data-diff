@@ -136,14 +136,10 @@ class TestDataSource(unittest.TestCase):
                 for item in json.load(file)
             ]
 
-        print(self.data_source_schema)
-
         self.db_type_data_source_schemas = {ds_schema.db_type: ds_schema for ds_schema in self.data_source_schema}
 
         with open(Path(__file__).parent / "files/data_source_list_response.json", "r") as file:
             self.data_sources = [TCloudApiDataSource(**item) for item in json.load(file)]
-
-        print(self.data_sources)
 
         self.api = Mock()
         self.api.get_data_source_schema_config.return_value = self.data_source_schema

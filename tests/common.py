@@ -92,7 +92,6 @@ def get_conn(cls: type, shared: bool = True) -> Database:
             _database_instances[cls] = get_conn(cls, shared=False)
         return _database_instances[cls]
 
-    print("Using connection fukc string", CONN_STRINGS[cls])
     return connect(CONN_STRINGS[cls], N_THREADS)
 
 

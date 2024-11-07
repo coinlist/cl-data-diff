@@ -141,7 +141,6 @@ class MySQL(ThreadedDatabase):
     def create_connection(self):
         mysql = import_mysql()
         try:
-            print("Debug connection args:", self._args)
             conn = mysql.connect(
                 charset="utf8",
                 use_unicode=True,

@@ -52,15 +52,15 @@ jobs:
     needs: [setup]
     uses: ./.github/workflows/ci.yml
 
-  # publish-data-platform-data-diff:
-  #   needs:
-  #     - setup
-  #     - run-unit-test-versions
-  #     - run-unit-test-per-database
-  #     - cache-dependencies
-  #   uses: ./.github/workflows/_publish-data-platform-data-diff.yml
-  #   secrets: inherit
-  #   with:
-  #     python_version: ${{ needs.setup.outputs.python_version }}
-  #     poetry_version: ${{ needs.setup.outputs.poetry_version }}
-  #     python_cache_key: ${{ needs.cache-dependencies.outputs.python_cache_key }}
+  publish-data-platform-data-diff:
+    needs:
+      - setup
+      - run-unit-test-versions
+      - run-unit-test-per-database
+      - cache-dependencies
+    uses: ./.github/workflows/_publish-data-platform-data-diff.yml
+    secrets: inherit
+    with:
+      python_version: ${{ needs.setup.outputs.python_version }}
+      poetry_version: ${{ needs.setup.outputs.poetry_version }}
+      python_cache_key: ${{ needs.cache-dependencies.outputs.python_cache_key }}

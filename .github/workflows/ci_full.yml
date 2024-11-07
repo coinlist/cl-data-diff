@@ -60,4 +60,4 @@ jobs:
           DATADIFF_REDSHIFT_URI: "${{ secrets.DATADIFF_REDSHIFT_URI }}"
         run: |
           chmod +x tests/waiting_for_stack_up.sh
-          ./tests/waiting_for_stack_up.sh && TEST_ACROSS_ALL_DBS=0 poetry run unittest-parallel -j 16
+          ./tests/waiting_for_stack_up.sh && poetry run unittest-parallel -j 16
