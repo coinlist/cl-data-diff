@@ -141,7 +141,17 @@ class MySQL(ThreadedDatabase):
     def create_connection(self):
         mysql = import_mysql()
         try:
-            return mysql.connect(charset="utf8", use_unicode=True, **self._args)
+            print("Debug connection args:", self._args)
+            conn = mysql.connect(
+                host="localhost",
+                port=3306,
+                user="mysql",
+                password="Password1",
+                database="mysql",
+                auth_plugin="mysql_native_password",
+            )
+            return conn
+        # mysql.connect(charset="utf8", use_unicode=True, **self._args)
         except mysql.Error as e:
             if e.errno == mysql.errorcode.ER_ACCESS_DENIED_ERROR:
                 raise ConnectError("Bad user name or password") from e
