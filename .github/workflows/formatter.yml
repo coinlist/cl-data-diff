@@ -1,14 +1,22 @@
 name: formatter
+
 on:
   workflow_dispatch:
   workflow_call:
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   linter_name:
     name: runner / ruff
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: Check files using the ruff formatter
         uses: chartboost/ruff-action@v1
         id: ruff_formatter
@@ -17,4 +25,4 @@ jobs:
       - name: Auto commit ruff formatting
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'style fixes by ruff'
+          commit_message: "style fixes by ruff"

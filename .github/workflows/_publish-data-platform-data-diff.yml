@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   build:
-    name: 'Publish python data-platform-data-diff'
+    name: "Publish python data-platform-data-diff"
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +28,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.CROSS_ACCOUNT_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION }}
-          mask-aws-account-id: 'yes'
+          mask-aws-account-id: "yes"
 
       - uses: actions/checkout@v3
 
@@ -36,7 +36,7 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v4
         with:
-          python-version: '${{ inputs.python_version }}'
+          python-version: "${{ inputs.python_version }}"
 
       - name: Install and configure Poetry
         uses: snok/install-poetry@v1

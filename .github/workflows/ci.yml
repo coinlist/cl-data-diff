@@ -27,7 +27,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Build the stack
-        run: docker-compose up -d mysql postgres presto trino clickhouse vertica
+        run: docker compose up -d mysql postgres presto trino clickhouse vertica
 
       - name: Install Poetry
         run: pip install poetry
@@ -36,16 +36,16 @@ jobs:
         run: "poetry install"
 
       # BigQuery start
-    #   - id: 'auth'
-    #     uses: 'google-github-actions/auth@v1'
-    #     with:
-    #       credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+      #   - id: 'auth'
+      #     uses: 'google-github-actions/auth@v1'
+      #     with:
+      #       credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
 
-    #   - name: 'Set up BigQuery Cloud SDK'
-    #     uses: 'google-github-actions/setup-gcloud@v1'
+      #   - name: 'Set up BigQuery Cloud SDK'
+      #     uses: 'google-github-actions/setup-gcloud@v1'
 
-    #   - name: 'Use gcloud CLI'
-    #     run: "gcloud config configurations list"
+      #   - name: 'Use gcloud CLI'
+      #     run: "gcloud config configurations list"
 
       - name: "Install BigQuery for Python"
         run: poetry add google-cloud-bigquery
@@ -54,13 +54,13 @@ jobs:
 
       - name: Run unit tests
         env:
-            DATADIFF_SNOWFLAKE_URI: '${{ secrets.DATADIFF_SNOWFLAKE_URI }}'
-            DATADIFF_PRESTO_URI: '${{ secrets.DATADIFF_PRESTO_URI }}'
-            DATADIFF_TRINO_URI: '${{ secrets.DATADIFF_TRINO_URI }}'
-            # DATADIFF_BIGQUERY_URI: '${{ secrets.DATADIFF_BIGQUERY_URI }}'
-            DATADIFF_CLICKHOUSE_URI: 'clickhouse://clickhouse:Password1@localhost:9000/clickhouse'
-            DATADIFF_VERTICA_URI: 'vertica://vertica:Password1@localhost:5433/vertica'
-            DATADIFF_REDSHIFT_URI: '${{ secrets.DATADIFF_REDSHIFT_URI }}'
+          DATADIFF_SNOWFLAKE_URI: "${{ secrets.DATADIFF_SNOWFLAKE_URI }}"
+          DATADIFF_PRESTO_URI: "${{ secrets.DATADIFF_PRESTO_URI }}"
+          DATADIFF_TRINO_URI: "${{ secrets.DATADIFF_TRINO_URI }}"
+          # DATADIFF_BIGQUERY_URI: '${{ secrets.DATADIFF_BIGQUERY_URI }}'
+          DATADIFF_CLICKHOUSE_URI: "clickhouse://clickhouse:Password1@localhost:9000/clickhouse"
+          DATADIFF_VERTICA_URI: "vertica://vertica:Password1@localhost:5433/vertica?tlsmode=disable"
+          DATADIFF_REDSHIFT_URI: "${{ secrets.DATADIFF_REDSHIFT_URI }}"
         run: |
           chmod +x tests/waiting_for_stack_up.sh
           ./tests/waiting_for_stack_up.sh && TEST_ACROSS_ALL_DBS=0 poetry run unittest-parallel -j 16

@@ -26,20 +26,23 @@ services:
 
     mysql:
       container_name: dd-mysql
-      image: mysql:oracle
-      # fsync less aggressively for insertion perf for test setup
-      command: >
-        --default-authentication-plugin=mysql_native_password
-        --binlog-cache-size=16M
-        --key_buffer_size=0
-        --max_connections=1000
-        --innodb_flush_log_at_trx_commit=2
-        --innodb_flush_log_at_timeout=10
-        --innodb_log_compressed_pages=OFF
-        --sync_binlog=0
+      image: mysql:8.0
+      command:
+        - --default-authentication-plugin=mysql_native_password
+        - --bind-address=0.0.0.0
+        - --skip-ssl
+        - --innodb_flush_log_at_trx_commit=2
+        - --innodb_flush_log_at_timeout=10
+        - --innodb_log_compressed_pages=OFF
+        - --sync_binlog=0
+        - --character-set-server=utf8mb4
+        - --collation-server=utf8mb4_unicode_ci
+        - --wait_timeout=28800
+        - --interactive_timeout=28800
       restart: always
       volumes:
         - mysql-data:/var/lib/mysql:delegated
+        - ./dev/mysql-init:/docker-entrypoint-initdb.d/init.sql
       user: mysql
       ports:
         - '3306:3306'
@@ -50,6 +53,11 @@ services:
       tty: true
       networks:
         - local
+      healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pPassword1"]
+        interval: 5s
+        timeout: 5s
+        retries: 10
 
     clickhouse:
       container_name: dd-clickhouse
