@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "data-diff"
-version = "0.10.0rc4"
+version = "0.10.0rc5"
 description = "Command-line tool and Python library to efficiently diff rows across two different databases."
 authors = ["Datafold <data-diff@datafold.com>"]
 license = "MIT"
@@ -26,7 +26,7 @@ name = "data-platform-data-diff"
 url = "PLACEHOLDER_URL"
 
 [tool.poetry.dependencies]
-pydantic = "1.10.12"
+pydantic = ">=2.7,<3.0.0"
 python = ">=3.8.0, <3.12.0"
 dsnparse = "<0.2.0"
 click = "^8.1"
