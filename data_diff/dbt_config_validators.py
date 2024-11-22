@@ -5,9 +5,9 @@ from pydantic import BaseModel, Field
 
 class ManifestJsonConfig(BaseModel):
     class Metadata(BaseModel):
-        dbt_version: str = Field(..., regex=r"^\d+\.\d+\.\d+([a-zA-Z0-9]+)?$")
-        project_id: Optional[str]
-        user_id: Optional[str]
+        dbt_version: str = Field(..., pattern=r"^\d+\.\d+\.\d+([a-zA-Z0-9]+)?$")
+        project_id: Optional[str] = None
+        user_id: Optional[str] = None
 
     class Nodes(BaseModel):
         class Config(BaseModel):
@@ -37,7 +37,7 @@ class ManifestJsonConfig(BaseModel):
         meta: Dict[str, Any]
         config: Config
         tags: List[str]
-        test_metadata: Optional[TestMetadata]
+        test_metadata: Optional[TestMetadata] = None
         depends_on: DependsOn
 
     metadata: Metadata
@@ -46,7 +46,7 @@ class ManifestJsonConfig(BaseModel):
 
 class RunResultsJsonConfig(BaseModel):
     class Metadata(BaseModel):
-        dbt_version: str = Field(..., regex=r"^\d+\.\d+\.\d+([a-zA-Z0-9]+)?$")
+        dbt_version: str = Field(..., pattern=r"^\d+\.\d+\.\d+([a-zA-Z0-9]+)?$")
 
     class Results(BaseModel):
         class Status(Enum):
